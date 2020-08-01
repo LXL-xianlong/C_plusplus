@@ -4,8 +4,12 @@
 #include<iostream>
 #include<assert.h>
 #include<stdlib.h>
+#include<time.h>
+#include<windows.h>
 using namespace std;
 
+typedef unsigned char u_char;
+typedef unsigned long u_long;
 
 #define ERR_EXIT(m)\
 	do\

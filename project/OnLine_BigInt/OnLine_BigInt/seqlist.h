@@ -37,16 +37,41 @@ public:
 public: 
 	reference operator[](int pos); 
 	const_reference operator[](int pos)const;
+
+protected:
+	bool _Inc();//声明扩容方法
 private:
 	enum {SEQLIST_DEFAULT_SIZE = 20};
 private:
-	Type       *base;
-	size_t     capacity;
-	size_t     len;
+	Type *   base;
+	size_t   capacity;
+	size_t   len;
 };
 
 //////////////////////////////////////////////////////////////////////
 //顺序表的实现
+template<class Type>
+bool SeqList<Type>:: _Inc()//扩容方法
+{
+	Type *new_base;
+		try
+	{
+		new_base = new Type[capacity * 2 + 1]; //2倍扩容
+	}
+	catch (bad_alloc &e)//若扩容失败，则抛出异常
+	{
+		cout << "Out of Memory." << endl;//内存溢出
+		return false;
+	}
+	memset(new_base, 0, sizeof(Type)*(capacity * 2 + 1));//将信开辟的空间初始化
+	memcpy(new_base, base, sizeof(Type)*(capacity + 1));//把原有的数据拷贝到新的内存空间中去
+	capacity *= 2;//容量变为原来的2倍
+
+	delete[]base;//释放掉原来的空间
+	base = new_base;//base指向新的空间
+	return true;
+}
+
 template<class Type>
 bool SeqList<Type>::isfull()const
 {
@@ -62,6 +87,7 @@ SeqList<Type>::SeqList(int sz)
 {
 	capacity = sz > SEQLIST_DEFAULT_SIZE ? sz : SEQLIST_DEFAULT_SIZE;
 	base = new Type[capacity + 1];//第一个空间暂时不存储任何数据
+	memset(base,0,sizeof(Type)*(capacity+1));
 	len = 0;
 }
 template<class Type>
@@ -75,14 +101,14 @@ SeqList<Type>::~SeqList()
 template<class Type>
 void SeqList<Type>::push_back(const Type &x)//尾插
 {
-	if (isfull())
+	if (isfull() && !_Inc())//空间满并且扩容失败
 		ERR_EXIT("push_back");
 	base[++len] = x;
 }
 template<class Type>
 void SeqList<Type>::push_front(const Type &x)//头插
 {
-	if (isfull())
+	if (isfull() && !_Inc())
 		ERR_EXIT("push_front");
 	for (size_t i = len; i >= 1; --i)
 		base[i + 1] = base[i];
@@ -181,6 +207,9 @@ void SeqList<Type>::erase(const Type &key)
 	int pos = find(key);
 	if (pos == -1)
 		return;
+	for (size_t i = pos; i < size; ++i)
+		base[i] = base[i + 1];
+	len--;
 
 }
 template<class Type>
